@@ -17,7 +17,7 @@ def conv_block(in_channels: int, out_channels: int, kernel_size: int):
 def pooling_block(kernel_size, out_channels, pooling):
     return nn.Sequential(
         pooling(kernel_size=kernel_size),
-        nn.BatchNorm2d(out_channels)
+        nn.BatchNorm2d(out_channels),
     )
 
 
