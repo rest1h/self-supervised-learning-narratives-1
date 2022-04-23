@@ -66,6 +66,7 @@ class Trainer(object):
                     # loss = criterion(cos_dist, r_label)
                     if not (idx % 100):
                         print(f'Epoch: {epoch}, Iteration:{idx}, loss: {loss.item()}')
+
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
