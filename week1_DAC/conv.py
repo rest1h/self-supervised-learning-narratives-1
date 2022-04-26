@@ -55,6 +55,6 @@ class MNISTNetwork(nn.Module):
         x = self.net2(x)
         x = self.net3(x)
         x = x.view(-1, 10)
-        x = self.net4(x)
-        return self.softmax(x) / self.thr
+        x = self.net4(x) / self.thr
+        return self.softmax(x)
 
