@@ -55,9 +55,9 @@ class Trainer(object):
                 x = x.view(-1, 1, 28, 28).to(self.device)
                 pred = self.model(x)
 
-            cos_dist = get_cos_dist_matrix(pred).to(self.device)
+            cos_dist = get_cos_dist_matrix(pred, self.device)
             # print(cos_dist)
-            loss = self._loss_with_generated_label(cos_dist).to(self.device)
+            loss = self._loss_with_generated_label(cos_dist)
 
             print(f'Epoch: {epoch}, Iteration:{idx}, loss: {loss.item()}')
 
@@ -100,5 +100,5 @@ class Trainer(object):
         # ) / torch.sum(r_u + r_l).to(self.device)
 
         # r_label = torch.where(cos_dist >= self.upper_thr, 1.0, 0.0)
-        loss = self.criterion(cos_dist, r_label)
+        loss = self.criterion(cos_dist, r_label).to(self.device)
         return loss
