@@ -48,6 +48,7 @@ class MNISTNetwork(nn.Module):
         )
         self.net4 = nn.Sequential(mlp(10, 10), mlp(10, 10))
         self.softmax = nn.Softmax(dim=1)
+        self.thr = nn.Parameter(torch.ones(1) * 0.9999)
 
     def forward(self, x_in: torch.Tensor):
         x = self.net1(x_in)
@@ -55,4 +56,5 @@ class MNISTNetwork(nn.Module):
         x = self.net3(x)
         x = x.view(-1, 10)
         x = self.net4(x)
-        return self.softmax(x)
+        return self.softmax(x) / self.thr
+
