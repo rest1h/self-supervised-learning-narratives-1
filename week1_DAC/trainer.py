@@ -57,7 +57,7 @@ class Trainer(object):
 
             cos_dist = get_cos_dist_matrix(pred).to(self.device)
             # print(cos_dist)
-            loss = self._loss_with_generated_label(cos_dist)
+            loss = self._loss_with_generated_label(cos_dist).to(self.device)
 
             print(f'Epoch: {epoch}, Iteration:{idx}, loss: {loss.item()}')
 
