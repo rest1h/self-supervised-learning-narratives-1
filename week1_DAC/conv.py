@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from typing import Tuple
 
 
 def conv_block(in_channels: int, out_channels: int, kernel_size: int):
@@ -14,14 +15,14 @@ def conv_block(in_channels: int, out_channels: int, kernel_size: int):
     )
 
 
-def pooling_block(kernel_size, out_channels, pooling):
+def pooling_block(kernel_size: Tuple, out_channels: int, pooling: [nn.MaxPool2d]):
     return nn.Sequential(
         pooling(kernel_size=kernel_size),
         nn.BatchNorm2d(out_channels),
     )
 
 
-def conv_net_block(in_channels, out_channels, kernel_size, pooling_size):
+def conv_net_block(in_channels: int, out_channels: int, kernel_size: int, pooling_size: Tuple):
     return nn.Sequential(
         conv_block(in_channels, out_channels, kernel_size),
         conv_block(out_channels, out_channels, kernel_size),
@@ -30,7 +31,7 @@ def conv_net_block(in_channels, out_channels, kernel_size, pooling_size):
     )
 
 
-def mlp(in_dim, out_dim):
+def mlp(in_dim: int, out_dim: int) -> nn.Sequential:
     return nn.Sequential(
         nn.Linear(in_dim, out_dim),
         nn.BatchNorm1d(out_dim),
@@ -48,13 +49,23 @@ class MNISTNetwork(nn.Module):
         )
         self.net4 = nn.Sequential(mlp(10, 10), mlp(10, 10))
         self.softmax = nn.Softmax(dim=1)
-        self.thr = nn.Parameter(torch.ones(1) * 0.9999)
+        self.eta = nn.Parameter(torch.zeros(1, dtype=torch.float))
+        self.sigmoid = nn.Sigmoid()
 
-    def forward(self, x_in: torch.Tensor):
+    def forward(self, x_in: torch.Tensor) -> torch.tensor:
         x = self.net1(x_in)
         x = self.net2(x)
         x = self.net3(x)
         x = x.view(-1, 10)
-        x = self.net4(x) / self.thr
+        x = self.net4(x)  # / self.sigmoid(self.thr)
         return self.softmax(x)
 
+    @property
+    def eta(self):
+        if self._eta > 1.0:
+            return self._eta * 0.90
+        return torch.abs(self._eta)
+
+    @eta.setter
+    def eta(self, eta):
+        self._eta = eta
