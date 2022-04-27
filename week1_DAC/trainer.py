@@ -6,21 +6,6 @@ from metric import NMI, ARI, ACC
 from conv import MNISTNetwork
 
 
-def check_shape(x):
-    import torch
-    import numpy as np
-    import tensorflow as tf
-
-    if torch.is_tensor(x):
-        print(x.size())
-    elif isinstance(x, np.ndarray):
-        print(x.shape)
-    elif isinstance(x, type([])):
-        print(np.array(x).shape)
-    elif tf.is_tensor(x):
-        print(tf.shape(x))
-
-
 class Trainer(object):
     def __init__(
             self,
