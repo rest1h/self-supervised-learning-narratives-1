@@ -1,6 +1,5 @@
 import numpy as np
-from torch.nn import CrossEntropyLoss, BCELoss
-from torch.optim import SGD, RMSprop, Adam
+from torch.optim import RMSprop
 import torch
 from cos_dist import get_cos_dist_matrix
 from metric import NMI, ARI, ACC
@@ -35,9 +34,6 @@ class Trainer(object):
         self.cluster = model().to(device)
         self.epoch = epoch
         self.n_iter = n_iter
-        # self.upper_thr = None
-        # self.lower_thr = None
-        # self.eta = (self.upper_thr - self.lower_thr) / self.epoch
         self.device = device
         # self.criterion = torch.nn.MSELoss()
         self.criterion = torch.nn.CrossEntropyLoss()
@@ -57,9 +53,6 @@ class Trainer(object):
                 pred = self.model(x)
 
             cos_dist = get_cos_dist_matrix(pred, self.device)
-            # self.upper_thr, self.lower_thr = torch.max(cos_dist), torch.min(cos_dist)
-
-            # print(cos_dist)
             loss = self._loss_with_generated_label(cos_dist)
 
             print(f'Epoch: {epoch} loss: {loss.item()}')
@@ -90,24 +83,6 @@ class Trainer(object):
 
         print(f'ACC: {ACC(tru_y, pre_y)}, NMI: {NMI(tru_y, pre_y)}, ARI: {ARI(tru_y, pre_y)}')
 
-        # self.thr -= (0.9999 - 0.5) / self.epoch
-        # self.upper_thr -= self.eta
-        # self.lower_thr += self.eta
-
     def _loss_with_generated_label(self, cos_dist: torch.tensor):
         generated_label = torch.where(cos_dist >= (1.0 - self.model.eta), 1.0, 0.0).to(self.device)
         return self.criterion(cos_dist, generated_label).to(self.device)
-
-
-        # r_label = torch.where(cos_dist >= self.model.thr, self.upper_thr, self.lower_thr).to(self.device)
-
-        # r_u = torch.where(cos_dist >= self.upper_thr, 1.0, 0).to(self.device)
-        # r_l = torch.where(cos_dist < self.lower_thr, 1.0, 0).to(self.device)
-        # r_label = torch.where(
-        #     cos_dist >= (self.upper_thr + self.lower_thr) / 2, 1.0, 0
-        # ).to(self.device)
-        # loss = torch.sum(
-        #     (r_u + r_l) * self.criterion(cos_dist, r_label)
-        # ) / torch.sum(r_u + r_l).to(self.device)
-
-        # r_label = torch.where(cos_dist >= self.upper_thr, 1.0, 0)
