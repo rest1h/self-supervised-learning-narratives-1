@@ -1,7 +1,7 @@
 import numpy as np
 from torch.optim import RMSprop
 import torch
-from cos_dist import get_cos_dist_matrix
+from cos_dist import upper_triangular_cos_matrix
 from metric import NMI, ARI, ACC
 from conv import MNISTNetwork
 
@@ -9,14 +9,14 @@ from conv import MNISTNetwork
 class Trainer(object):
     def __init__(
             self,
-            model: [MNISTNetwork],
+            model: MNISTNetwork,
             epoch: int,
             n_iter: int,
             device: str
     ):
-        super().__init__()
-        self.model = model().to(device)
-        self.cluster = model().to(device)
+        super(Trainer).__init__()
+        self.model = model.to(device)
+        self.cluster = model.to(device)
         self.epoch = epoch
         self.n_iter = n_iter
         self.device = device
@@ -29,15 +29,9 @@ class Trainer(object):
         self.data = data
         for epoch in range(self.epoch):
             self.model.train()
+            label, pred = self._train_iter()
 
-            for idx, (x, _) in enumerate(self.data):
-                if idx == self.n_iter:
-                    break
-
-                x = x.view(-1, 1, 28, 28).to(self.device)
-                pred = self.model(x)
-
-            cos_dist = get_cos_dist_matrix(pred, self.device)
+            cos_dist = upper_triangular_cos_matrix(label, self.device)
             loss = self._loss_with_generated_label(cos_dist)
 
             print(f'Epoch: {epoch} loss: {loss.item()}')
@@ -47,6 +41,15 @@ class Trainer(object):
             self.optimizer.step()
 
             self._validate()
+
+    def _train_iter(self):
+        for idx, (x, _) in enumerate(self.data):
+            if idx == self.n_iter:
+                break
+            x = x.view(-1, 1, 28, 28).to(self.device)
+            label = self.cluster(x)
+            pred = self.model(x)
+        return label, pred
 
     def _validate(self):
         self.model.eval()

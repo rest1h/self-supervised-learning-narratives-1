@@ -15,7 +15,7 @@ def conv_block(in_channels: int, out_channels: int, kernel_size: int):
     )
 
 
-def pooling_block(kernel_size: Tuple, out_channels: int, pooling: [nn.MaxPool2d]):
+def pooling_block(kernel_size: Tuple, out_channels: int, pooling: nn.MaxPool2d):
     return nn.Sequential(
         pooling(kernel_size=kernel_size),
         nn.BatchNorm2d(out_channels),
@@ -49,10 +49,11 @@ class MNISTNetwork(nn.Module):
         )
         self.net4 = nn.Sequential(mlp(10, 10), mlp(10, 10))
         self.softmax = nn.Softmax(dim=1)
-        self.eta = nn.Parameter(torch.zeros(1, dtype=torch.float))
+        self._eta = nn.Parameter(torch.zeros(1, dtype=torch.float))
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x_in: torch.Tensor) -> torch.tensor:
+
         x = self.net1(x_in)
         x = self.net2(x)
         x = self.net3(x)
@@ -62,10 +63,12 @@ class MNISTNetwork(nn.Module):
 
     @property
     def eta(self):
-        if self._eta > 1.0:
-            return self._eta * 0.90
-        return torch.abs(self._eta)
+        return self._eta
 
     @eta.setter
     def eta(self, eta):
         self._eta = eta
+
+    def _fix_eta(self):
+        eta = torch.abs(self._eta)
+        self._eta = (eta * 0.99) if eta > 1.0 else eta
